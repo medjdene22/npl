@@ -1,0 +1,115 @@
+TP4 — Lab 4: Stopword Removal
+Written answers
+==============================
+
+Exercise 1 — Identifying stopwords
+
+Tasks
+- Stopwords in the sentence: the, is, on, a.
+- Complement: student, working, natural, language, processing, project, "."
+  A human can still guess the topic (an NLP project) from these content words.
+- natural, language and processing are not stopwords. That is expected: they are
+  content words. Note that "processing" is still generic inside an NLP corpus
+  (see Exercise 4).
+- First 15 words: a, about, above, after, again, against, ain, all, am, an, and,
+  any, are, aren, aren't.
+  Categories:
+    articles/determiners: a, an
+    prepositions: about, above, after, against
+    adverbs/conjunctions: again, all, any
+    be/auxiliaries: am, are, aren't, ain
+
+Questions
+Q1. Recognised stopwords: the, is, on, a.
+Q2. No. "not" is very frequent but flips the meaning of a sentiment sentence, and
+    "is" can be the focus of a question-answering query.
+Q3. It depends on the task. Removal helps when word identity matters more than
+    grammar (search, topic classification) and hurts when small words carry
+    meaning (sentiment, QA, translation).
+
+
+Exercise 2 — Quantifying the effect
+
+Tasks
+1. The Exercise 1 sentence goes from 11 tokens to 7; the, is, on, a are removed.
+2. stopword_stats() returns original, remaining, removed and percentage removed.
+3. Results:
+     style      original  kept  removed  % removed
+     tweet            14     8        6      42.9%
+     formal           15     7        8      53.3%
+     keywords          5     5        0       0.0%
+4. The percentage varies a lot (0-53%). A keyword list has almost no function
+   words, formal prose is dense in them, and a tweet is in between. Style matters
+   more than length.
+
+
+Exercise 3 — The importance of context: negation
+
+Tasks
+1. After NLTK stopword removal:
+     "This movie is not good." -> movie good .
+     "This movie is really not that bad, actually." -> movie really bad , actually .
+2. The negation word removed in both cases is "not". In sentence 2, "that" is
+   also a stopword, but it is not the negator.
+3. Naive scores:
+     sentence 1: +1 before removal, +1 after removal
+     sentence 2: -1 before removal, -1 after removal
+   Removal changes nothing because the scorer ignores "not" - that is the real
+   weakness.
+4. Fix: keep not/no/never/n't/nor and flip the polarity when a negator appears
+   within two tokens before a sentiment word. Scores become:
+     "not good" -> -1
+     "not ... bad" -> +1
+   This is much more sensible.
+
+Questions
+Q1. Negation/polarity disappears: "not good" becomes "good".
+Q2. Before the fix, "not" was dropped by the NLTK list and ignored by the naive
+    scorer, so the scores stayed +1/-1. After the fix it is kept and flips the
+    polarity.
+Q3. Sentiment depends on small words such as not, no, never, very and really.
+    Blindly removing them can invert or weaken the polarity.
+
+
+Exercise 4 — Custom, domain-specific stopword lists
+
+Tasks
+1. NLTK has 198 words, the custom list has 4. 194 words are in NLTK but not in
+   the custom list; nothing is in custom but not NLTK (it is a subset).
+2. Raw frequencies (punctuation ignored): processing 4, language 3, text 3;
+   every other word appears once.
+3. Extension: add processing, language and text. They are frequent in this
+   corpus but weak at telling documents apart in an NLP course.
+4. Vocabulary: NLTK only leaves 22 distinct words; NLTK + domain leaves 19.
+   The words removed by the extension are exactly language, processing, text.
+
+Question
+Q. A generic list is domain-independent. It cannot know that "processing" is noise
+   in an NLP corpus, or that "not" is critical for sentiment. A domain list adapts
+   the removal to the corpus and the task.
+
+
+Exercise 5 — Integrated preprocessing mini-pipeline
+
+Stages
+1. RegEx: mask the URL as <URL> and the price as <PRICE>.
+2. Tokenize with word_tokenize.
+3. Normalize: lowercase; 2018 and 1,000 become <NUM>.
+4. Stopword removal: use NLTK's list but keep the negators. "n't" is preserved.
+   Why: "Isn't that amazing?" is a positive rhetorical question, and Exercise 3
+   showed that dropping negation can flip sentiment. NLTK does not list "n't",
+   but "is" is removed, so the negation cue survives on purpose.
+5. Token counts:
+     raw                           43
+     after RegEx                   40
+     after tokenization            40
+     after normalization           40
+     after stopword removal        30
+   The raw count is higher because the URL is split into several tokens before
+   it is masked.
+
+Final representation
+['natural', 'language', 'processing', '(', 'nlp', ')', 'grown', 'fast',
+ 'since', '<NUM>', '!', '!', 'companies', 'google', 'openai', 'offer', 'apis',
+ '<URL>', ',', 'models', 'cost', 'around', '<PRICE>', 'per', '<NUM>',
+ 'tokens', '.', "n't", 'amazing', '?']
