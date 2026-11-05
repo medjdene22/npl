@@ -1,0 +1,4 @@
+# Shared tools for the practical-work folders (tp1, tp2, tp3, tp4).
+jupyterlab
+ipykernel
+nltk

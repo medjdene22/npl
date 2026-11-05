@@ -1,0 +1,90 @@
+TP3 — Lab 3: Text Normalization
+Written answers
+==============================
+
+Exercise 1 — Lowercasing and its limits
+
+Q1. Why is lowercasing useful for search or bag-of-words?
+It merges case variants of the same word (Apple/apple, NLP/nlp) into one
+feature. The vocabulary gets smaller and a query matches regardless of case.
+
+Q2. When could losing case cause a mistake?
+In NER: "Apple released a new iPhone" vs "I ate an apple". After lowercasing,
+the company and the fruit are identical, so the model loses a strong clue.
+Same problem with US/us, Turkey/turkey, Bush/bush.
+
+Q3. Weakness of smart_lower()?
+It keeps any 2-5 letter all-caps word, not only acronyms. "WE ARE FINE" stays
+uppercase, real acronyms longer than 5 letters (UNESCO) get lowercased, and the
+pronoun "I" becomes "i".
+
+
+Exercise 2 — Whitespace and invisible-character normalization
+
+Q1. What is being corrected, and what does \s+ represent?
+Runs of spaces, tabs, newlines and non-breaking spaces are collapsed into one
+space. \s+ matches one or more whitespace characters; in Python 3 it also
+matches Unicode spaces such as \u00a0.
+
+Q2. Why do these appear in real-world text?
+PDF/HTML extraction keeps the original layout, HTML uses &nbsp;, and line
+wrapping inserts newlines and tabs.
+
+Q3. Can aggressive normalization remove meaningful formatting?
+Yes: indentation is syntax in Python, line breaks carry meaning in poetry, and
+collapsing spaces destroys table alignment.
+
+
+Exercise 3 — Number normalization
+
+With plain \d+, $1,250.00 becomes $<NUM>,<NUM>.<NUM>; the comma-aware pattern
+keeps it as one number.
+
+When to use a placeholder:
+- <NUM> is useful for topic classification or bag-of-words: smaller vocabulary,
+  no overfitting to rare numbers.
+- Exact numbers should be kept in financial, medical or legal text, where the
+  value itself is the information.
+
+Which version preserves more for the invoice?
+<NUM_SMALL>/<NUM_LARGE> keeps more than <NUM>: we still know 1,250 is large and
+30 is small. But exact comparison needs the real value, so the best option is to
+extract the number and keep it.
+
+
+Exercise 4 — Full cleaning pipeline
+
+Task 3. Vocabulary size
+Before cleaning: 27 tokens, 23 distinct.
+After cleaning:  20 tokens, 18 distinct.
+Removing the URL/email and merging case variants shrinks the vocabulary.
+
+Task 4. Should "!" and repeated letters be removed for sentiment?
+Not completely. "!!!" and "soooo good" carry intensity, so removing them loses
+sentiment signal. Collapsing to two letters keeps some of it, but keeping a
+feature such as the number of "!" or an <EXCLAIM> token is better. Removing them
+is acceptable for topic classification, not for sentiment.
+
+
+Exercise 5 — Normalization decisions across applications
+
+Text element                    Application                  Decision
+---------------------------------------------------------------------------
+Capital letters                 Sentiment analysis           Normalize (lowercase), keep an ALL-CAPS feature if emphasis matters
+Numbers                         Financial document analysis   Preserve
+Punctuation                     Question answering            Preserve
+Multiple spaces / line breaks   Web-scraped corpus cleaning   Normalize
+Emojis                          Social-media sentiment        Preserve
+Repeated letters ("soooo good") Social-media sentiment        Normalize (collapse to at most 2)
+Accented characters             Multilingual search engine    Normalize (NFC) / fold accents for matching, keep original for display
+
+Justifications (with the opposite choice):
+- Capital letters — sentiment: lowercase works for bag-of-words, but ALL CAPS
+  can signal shouting. Opposite: preserve case for NER.
+- Numbers — finance: exact amounts matter ($1,250.00 vs $1,205.00). Opposite:
+  replace with <NUM> for topic classification.
+- Emojis — social sentiment: 🙂 vs 😞 is direct signal. Opposite: remove them
+  when cleaning formal text.
+- Accents — search: folding "café" to "cafe" lets users type without accents
+  and improves recall. Opposite: preserve when accents distinguish words, as in
+  "péché" vs "pêche".
