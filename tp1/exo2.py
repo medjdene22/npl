@@ -3,6 +3,7 @@ import re
 text = "cat bat rat dog hot"
 
 print(re.findall(r"\b\w+at\b", text))
+print(re.findall(r"c(?:at)", text))
 
 print(re.findall(r"[bcdfghjklmnpqrstvwxyz]{3}", text))
 

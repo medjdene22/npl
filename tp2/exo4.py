@@ -1,4 +1,3 @@
-import nltk
 from nltk.tokenize import sent_tokenize
 
 text = "NLP is useful. Students can practise it. The exercises are interesting."

@@ -5,11 +5,11 @@ receipt = "2 apples, 1.5 kg of rice, 3 juices at $2.50 each, total: $12.75 (-$1.
 
 print(re.findall(r"\d+", text))
 
-print(re.findall(r"\d+\.?\d*", receipt))
+print(re.findall(r"\d+(?:\.\d+)?", receipt))
 
-print(re.findall(r"-?\$?\d+\.?\d*", receipt))
+print(re.findall(r"-?\$?\d+(?:\.\d+)?", receipt))
 
-amounts = [float(a.replace("$", "")) for a in re.findall(r"-?\$\d+\.?\d*", receipt)]
+amounts = [float(a.replace("$", "")) for a in re.findall(r"-?\$\d+(?:\.\d+)?", receipt)]
 print(amounts)
 print(sum(amounts))
 
